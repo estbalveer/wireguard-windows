@@ -21,6 +21,7 @@ type ManageTunnelsWindow struct {
 	walk.FormBase
 
 	tabs        *walk.TabWidget
+	homePage    *HomePage
 	tunnelsPage *TunnelsPage
 	logPage     *LogPage
 	updatePage  *UpdatePage
@@ -97,6 +98,11 @@ func NewManageTunnelsWindow() (*ManageTunnelsWindow, error) {
 	if mtw.tabs, err = walk.NewTabWidget(mtw); err != nil {
 		return nil, err
 	}
+
+	if mtw.homePage, err = NewHomePage(); err != nil {
+		return nil, err
+	}
+	mtw.tabs.Pages().Add(mtw.homePage.TabPage)
 
 	if mtw.tunnelsPage, err = NewTunnelsPage(); err != nil {
 		return nil, err

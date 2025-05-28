@@ -48,7 +48,7 @@ END
 LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
 VERSIONINFO_TEMPLATE(
   "040904b0", 0x409, 0x4b0,
-  "WireGuard: Fast, Modern, Secure VPN Tunnel",
+  "CloakStream App",
   "https://www.wireguard.com/"
 )
 
