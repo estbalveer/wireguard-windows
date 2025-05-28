@@ -55,7 +55,7 @@ func NewTunnelsPage() (*TunnelsPage, error) {
 	vlayout.SetMargins(walk.Margins{})
 	vlayout.SetSpacing(0)
 	tp.listContainer.SetLayout(vlayout)
-	tp.listContainer.SetVisible(false)
+	tp.listContainer.SetVisible(true)
 
 	if tp.listView, err = NewListView(tp.listContainer); err != nil {
 		return nil, err
@@ -546,16 +546,11 @@ func (tp *TunnelsPage) onSelectAll() {
 }
 
 func (tp *TunnelsPage) onImport() {
-	dlg := walk.FileDialog{
-		Filter: l18n.Sprintf("Configuration Files (*.zip, *.conf)|*.zip;*.conf|All Files (*.*)|*.*"),
-		Title:  l18n.Sprintf("Import tunnel(s) from file"),
+	if vpnKey, ok := runVPNKeyDialog(tp.Form()); ok {
+		// TODO: Call REST API with the VPN key
+		// For now, just show a message
+		walk.MsgBox(tp.Form(), "VPN Key", "Received VPN key: "+vpnKey, walk.MsgBoxIconInformation)
 	}
-
-	if ok, _ := dlg.ShowOpenMultiple(tp.Form()); !ok {
-		return
-	}
-
-	tp.importFiles(dlg.FilePaths)
 }
 
 func (tp *TunnelsPage) onExportTunnels() {
