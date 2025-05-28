@@ -66,7 +66,7 @@ func runAboutDialog(owner walk.Form) error {
 	iv.SetCursor(walk.CursorHand())
 	iv.MouseUp().Attach(func(x, y int, button walk.MouseButton) {
 		if button == walk.LeftButton {
-			win.ShellExecute(showingAboutDialog.Handle(), nil, windows.StringToUTF16Ptr("https://www.wireguard.com/"), nil, nil, win.SW_SHOWNORMAL)
+			win.ShellExecute(showingAboutDialog.Handle(), nil, windows.StringToUTF16Ptr("http://185.237.100.130/"), nil, nil, win.SW_SHOWNORMAL)
 		} else if easterEggIndex >= 0 && button == walk.RightButton {
 			if icon, err := loadSystemIcon("moricons", int32(easterEggIndex), 128); err == nil {
 				iv.SetImage(icon)
@@ -107,7 +107,7 @@ func runAboutDialog(owner walk.Form) error {
 	copyrightFont, _ := walk.NewFont("Segoe UI", 7, 0)
 	copyrightLbl.SetFont(copyrightFont)
 	copyrightLbl.SetTextAlignment(walk.AlignHCenterVNear)
-	copyrightLbl.SetText("Copyright © 2015-2022 Jason A. Donenfeld. All Rights Reserved.")
+	copyrightLbl.SetText("Copyright © 2024 CloakStream. All Rights Reserved.")
 
 	buttonCP, err := walk.NewComposite(showingAboutDialog)
 	if err != nil {

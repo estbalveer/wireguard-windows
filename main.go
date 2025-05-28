@@ -118,14 +118,14 @@ func checkForAdminGroup() {
 	}
 	defer processToken.Close()
 	if !elevate.TokenIsElevatedOrElevatable(processToken) {
-		fatalf("WireGuard may only be used by users who are a member of the Builtin %s group.", elevate.AdminGroupName())
+		fatalf("CloakStream may only be used by users who are a member of the Builtin %s group.", elevate.AdminGroupName())
 	}
 }
 
 func checkForAdminDesktop() {
 	adminDesktop, err := elevate.IsAdminDesktop()
 	if !adminDesktop && err == nil {
-		fatalf("WireGuard is running, but the UI is only accessible from desktops of the Builtin %s group.", elevate.AdminGroupName())
+		fatalf("CloakStream is running, but the UI is only accessible from desktops of the Builtin %s group.", elevate.AdminGroupName())
 	}
 }
 
@@ -184,7 +184,7 @@ func main() {
 		}
 		checkForAdminDesktop()
 		time.Sleep(30 * time.Second)
-		fatalf("WireGuard system tray icon did not appear after 30 seconds.")
+		fatalf("CloakStream system tray icon did not appear after 30 seconds.")
 		return
 	case "/uninstallmanagerservice":
 		if len(os.Args) != 2 {
