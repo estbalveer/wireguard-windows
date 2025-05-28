@@ -224,7 +224,7 @@ func (mtw *ManageTunnelsWindow) WndProc(hwnd win.HWND, msg uint32, wParam, lPara
 			}
 		}
 		if mtw.tabs.Pages().Len() == 3 {
-			mtw.tabs.SetCurrentIndex(2)
+			mtw.tabs.SetCurrentIndex(0)
 		}
 		raise(mtw.Handle())
 		return 0
