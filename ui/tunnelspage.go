@@ -55,6 +55,7 @@ func NewTunnelsPage() (*TunnelsPage, error) {
 	vlayout.SetMargins(walk.Margins{})
 	vlayout.SetSpacing(0)
 	tp.listContainer.SetLayout(vlayout)
+	tp.listContainer.SetVisible(false)
 
 	if tp.listView, err = NewListView(tp.listContainer); err != nil {
 		return nil, err
@@ -112,7 +113,6 @@ func NewTunnelsPage() (*TunnelsPage, error) {
 	disposables.Spare()
 
 	tp.listView.ItemCountChanged().Attach(tp.onTunnelsChanged)
-	tp.listView.SelectedIndexesChanged().Attach(tp.onSelectedTunnelsChanged)
 	tp.listView.ItemActivated().Attach(tp.onTunnelsViewItemActivated)
 	tp.listView.CurrentIndexChanged().Attach(tp.updateConfView)
 	tp.listView.Load(false)
@@ -588,19 +588,7 @@ func (tp *TunnelsPage) swapFiller(enabled bool) bool {
 
 func (tp *TunnelsPage) onTunnelsChanged() {
 	if tp.swapFiller(tp.listView.model.RowCount() == 0) {
-		tp.fillerButton.SetText(l18n.Sprintf("Import tunnel(s) from file"))
+		tp.fillerButton.SetText(l18n.Sprintf("Login with VPN key"))
 		tp.fillerHandler = tp.onImport
-	}
-}
-
-func (tp *TunnelsPage) onSelectedTunnelsChanged() {
-	if tp.listView.model.RowCount() == 0 {
-		return
-	}
-	indices := tp.listView.SelectedIndexes()
-	tunnelCount := len(indices)
-	if tp.swapFiller(tunnelCount > 1) {
-		tp.fillerButton.SetText(l18n.Sprintf("Delete %d tunnels", tunnelCount))
-		tp.fillerHandler = tp.onDelete
 	}
 }
