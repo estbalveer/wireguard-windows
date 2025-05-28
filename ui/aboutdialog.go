@@ -50,7 +50,7 @@ func runAboutDialog(owner walk.Form) error {
 		showingAboutDialog = nil
 	}()
 	disposables.Add(showingAboutDialog)
-	showingAboutDialog.SetTitle(l18n.Sprintf("About WireGuard"))
+	showingAboutDialog.SetTitle(l18n.Sprintf("About CloakStream"))
 	showingAboutDialog.SetLayout(vbl)
 	if icon, err := loadLogoIcon(32); err == nil {
 		showingAboutDialog.SetIcon(icon)
@@ -82,7 +82,7 @@ func runAboutDialog(owner walk.Form) error {
 	if logo, err := loadLogoIcon(128); err == nil {
 		iv.SetImage(logo)
 	}
-	iv.Accessibility().SetName(l18n.Sprintf("WireGuard logo image"))
+	iv.Accessibility().SetName(l18n.Sprintf("CloakStream logo image"))
 
 	wgLbl, err := walk.NewTextLabel(showingAboutDialog)
 	if err != nil {
@@ -91,7 +91,7 @@ func runAboutDialog(owner walk.Form) error {
 	wgFont, _ := walk.NewFont("Segoe UI", 16, walk.FontBold)
 	wgLbl.SetFont(wgFont)
 	wgLbl.SetTextAlignment(walk.AlignHCenterVNear)
-	wgLbl.SetText("WireGuard")
+	wgLbl.SetText("CloakStream")
 
 	detailsLbl, err := walk.NewTextLabel(showingAboutDialog)
 	if err != nil {
@@ -117,30 +117,6 @@ func runAboutDialog(owner walk.Form) error {
 	hbl.SetMargins(walk.Margins{VNear: 10})
 	buttonCP.SetLayout(hbl)
 	walk.NewHSpacer(buttonCP)
-	closePB, err := walk.NewPushButton(buttonCP)
-	if err != nil {
-		return err
-	}
-	closePB.SetAlignment(walk.AlignHCenterVNear)
-	closePB.SetText(l18n.Sprintf("Close"))
-	closePB.Clicked().Attach(showingAboutDialog.Accept)
-	donatePB, err := walk.NewPushButton(buttonCP)
-	if err != nil {
-		return err
-	}
-	donatePB.SetAlignment(walk.AlignHCenterVNear)
-	donatePB.SetText(l18n.Sprintf("♥ &Donate!"))
-	donatePB.Clicked().Attach(func() {
-		if easterEggIndex == -1 {
-			easterEggIndex = 0
-		}
-		win.ShellExecute(showingAboutDialog.Handle(), nil, windows.StringToUTF16Ptr("https://www.wireguard.com/donations/"), nil, nil, win.SW_SHOWNORMAL)
-		showingAboutDialog.Accept()
-	})
-	walk.NewHSpacer(buttonCP)
-
-	showingAboutDialog.SetDefaultButton(donatePB)
-	showingAboutDialog.SetCancelButton(closePB)
 
 	disposables.Spare()
 

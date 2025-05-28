@@ -39,10 +39,10 @@
 
 		<MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
-		<Icon Id="wireguard.ico" SourceFile="..\ui\icon\wireguard.ico" />
+		<Icon Id="cloakstream.ico" SourceFile="..\ui\icon\cloakstream.ico" />
 		<Binary Id="customactions.dll" SourceFile="$(var.WIREGUARD_PLATFORM)\customactions.dll" />
 
-		<Property Id="ARPPRODUCTICON" Value="wireguard.ico" />
+		<Property Id="ARPPRODUCTICON" Value="cloakstream.ico" />
 		<Property Id="ARPURLINFOABOUT" Value="https://www.wireguard.com/" />
 		<Property Id="ARPNOMODIFY" Value="yes" />
 		<Property Id="DISABLEADVTSHORTCUTS" Value="yes" />
