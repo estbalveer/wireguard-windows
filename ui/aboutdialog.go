@@ -109,6 +109,32 @@ func runAboutDialog(owner walk.Form) error {
 	copyrightLbl.SetTextAlignment(walk.AlignHCenterVNear)
 	copyrightLbl.SetText("Copyright © 2024 CloakStream. All Rights Reserved.")
 
+	linksCP, err := walk.NewComposite(showingAboutDialog)
+	if err != nil {
+		return err
+	}
+	linksLayout := walk.NewHBoxLayout()
+	linksLayout.SetSpacing(20)
+	linksCP.SetLayout(linksLayout)
+
+	privacyBtn, err := walk.NewPushButton(linksCP)
+	if err != nil {
+		return err
+	}
+	privacyBtn.SetText(l18n.Sprintf("Privacy Policy"))
+	privacyBtn.Clicked().Attach(func() {
+		win.ShellExecute(showingAboutDialog.Handle(), nil, windows.StringToUTF16Ptr("http://185.237.100.130/privacy-policy"), nil, nil, win.SW_SHOWNORMAL)
+	})
+
+	termsBtn, err := walk.NewPushButton(linksCP)
+	if err != nil {
+		return err
+	}
+	termsBtn.SetText(l18n.Sprintf("Terms of Use"))
+	termsBtn.Clicked().Attach(func() {
+		win.ShellExecute(showingAboutDialog.Handle(), nil, windows.StringToUTF16Ptr("http://185.237.100.130/terms-conditions"), nil, nil, win.SW_SHOWNORMAL)
+	})
+
 	buttonCP, err := walk.NewComposite(showingAboutDialog)
 	if err != nil {
 		return err

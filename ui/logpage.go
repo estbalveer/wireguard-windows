@@ -108,6 +108,13 @@ func NewLogPage() (*LogPage, error) {
 
 	walk.NewHSpacer(buttonsContainer)
 
+	clearButton, err := walk.NewPushButton(buttonsContainer)
+	if err != nil {
+		return nil, err
+	}
+	clearButton.SetText(l18n.Sprintf("&Clear"))
+	clearButton.Clicked().Attach(lp.onClear)
+
 	saveButton, err := walk.NewPushButton(buttonsContainer)
 	if err != nil {
 		return nil, err
@@ -126,6 +133,19 @@ func (lp *LogPage) isAtBottom() bool {
 
 func (lp *LogPage) scrollToBottom() {
 	lp.logView.EnsureItemVisible(len(lp.model.items) - 1)
+}
+
+func (lp *LogPage) onClear() {
+	if walk.DlgCmdNo == walk.MsgBox(
+		lp.Form(),
+		l18n.Sprintf("Clear Log"),
+		l18n.Sprintf("Are you sure you want to clear the log? This action cannot be undone."),
+		walk.MsgBoxYesNo|walk.MsgBoxIconWarning) {
+		return
+	}
+
+	lp.model.items = nil
+	lp.model.PublishRowsReset()
 }
 
 func (lp *LogPage) onCopy() {
