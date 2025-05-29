@@ -55,7 +55,7 @@ func NewTunnelsPage() (*TunnelsPage, error) {
 	vlayout.SetMargins(walk.Margins{})
 	vlayout.SetSpacing(0)
 	tp.listContainer.SetLayout(vlayout)
-	tp.listContainer.SetVisible(true)
+	tp.listContainer.SetVisible(false)
 
 	if tp.listView, err = NewListView(tp.listContainer); err != nil {
 		return nil, err
@@ -98,17 +98,42 @@ func NewTunnelsPage() (*TunnelsPage, error) {
 
 	walk.NewHSpacer(controlsContainer)
 
-	editTunnel, err := walk.NewPushButton(controlsContainer)
+	resetDataBtn, err := walk.NewPushButton(controlsContainer)
 	if err != nil {
 		return nil, err
 	}
-	editTunnel.SetEnabled(false)
-	tp.listView.CurrentIndexChanged().Attach(func() {
-		editTunnel.SetEnabled(tp.listView.CurrentIndex() > -1)
+	resetDataBtn.SetText(l18n.Sprintf("&Reset Data"))
+	resetDataBtn.Clicked().Attach(func() {
+		if walk.DlgCmdNo == walk.MsgBox(
+			tp.Form(),
+			l18n.Sprintf("Reset Data"),
+			l18n.Sprintf("Are you sure you want to delete all tunnel configurations? This action cannot be undone."),
+			walk.MsgBoxYesNo|walk.MsgBoxIconWarning) {
+			return
+		}
+
+		go func() {
+			tp.listView.SetSuspendTunnelsUpdate(true)
+			var errors []error
+			for _, tunnel := range tp.listView.model.tunnels {
+				err := tunnel.Delete()
+				if err != nil && (len(errors) == 0 || errors[len(errors)-1].Error() != err.Error()) {
+					errors = append(errors, err)
+				}
+			}
+			tp.listView.SetSuspendTunnelsUpdate(false)
+			if len(errors) > 0 {
+				tp.listView.Synchronize(func() {
+					if len(errors) == 1 {
+						showErrorCustom(tp.Form(), l18n.Sprintf("Unable to delete tunnel"), l18n.Sprintf("A tunnel was unable to be removed: %s", errors[0].Error()))
+					} else {
+						showErrorCustom(tp.Form(), l18n.Sprintf("Unable to delete tunnels"), l18n.Sprintf("%d tunnels were unable to be removed.", len(errors)))
+					}
+				})
+			}
+		}()
 	})
-	editTunnel.SetText(l18n.Sprintf("&Edit"))
-	editTunnel.Clicked().Attach(tp.onEditTunnel)
-	editTunnel.SetVisible(IsAdmin)
+	resetDataBtn.SetVisible(IsAdmin)
 
 	disposables.Spare()
 
@@ -126,8 +151,6 @@ func (tp *TunnelsPage) CreateToolbar() error {
 		return nil
 	}
 
-	// HACK: Because of https://github.com/lxn/walk/issues/481
-	// we need to put the ToolBar into its own Composite.
 	toolBarContainer, err := walk.NewComposite(tp.listContainer)
 	if err != nil {
 		return err
@@ -155,13 +178,6 @@ func (tp *TunnelsPage) CreateToolbar() error {
 	importAction.SetDefault(true)
 	importAction.Triggered().Attach(tp.onImport)
 	addMenu.Actions().Add(importAction)
-	addAction := walk.NewAction()
-	addAction.SetText(l18n.Sprintf("Add &empty tunnel…"))
-	addActionIcon, _ := loadSystemIcon("imageres", -2, 16)
-	addAction.SetImage(addActionIcon)
-	addAction.SetShortcut(walk.Shortcut{walk.ModControl, walk.KeyN})
-	addAction.Triggered().Attach(tp.onAddTunnel)
-	addMenu.Actions().Add(addAction)
 	addMenuAction := walk.NewMenuAction(addMenu)
 	addMenuActionIcon, _ := loadSystemIcon("shell32", -258, 16)
 	addMenuAction.SetImage(addMenuActionIcon)
@@ -179,14 +195,6 @@ func (tp *TunnelsPage) CreateToolbar() error {
 	deleteAction.SetToolTip(l18n.Sprintf("Remove selected tunnel(s)"))
 	deleteAction.Triggered().Attach(tp.onDelete)
 	tp.listToolbar.Actions().Add(deleteAction)
-	tp.listToolbar.Actions().Add(walk.NewSeparatorAction())
-
-	exportAction := walk.NewAction()
-	exportActionIcon, _ := loadSystemIcon("imageres", -174, 16)
-	exportAction.SetImage(exportActionIcon)
-	exportAction.SetToolTip(l18n.Sprintf("Export all tunnels to zip"))
-	exportAction.Triggered().Attach(tp.onExportTunnels)
-	tp.listToolbar.Actions().Add(exportAction)
 
 	fixContainerWidthToToolbarWidth := func() {
 		toolbarWidth := tp.listToolbar.SizeHint().Width
@@ -213,26 +221,6 @@ func (tp *TunnelsPage) CreateToolbar() error {
 	importAction2.SetVisible(IsAdmin)
 	contextMenu.Actions().Add(importAction2)
 	tp.ShortcutActions().Add(importAction2)
-	addAction2 := walk.NewAction()
-	addAction2.SetText(l18n.Sprintf("Add &empty tunnel…"))
-	addAction2.SetShortcut(walk.Shortcut{walk.ModControl, walk.KeyN})
-	addAction2.Triggered().Attach(tp.onAddTunnel)
-	addAction2.SetVisible(IsAdmin)
-	contextMenu.Actions().Add(addAction2)
-	tp.ShortcutActions().Add(addAction2)
-	exportAction2 := walk.NewAction()
-	exportAction2.SetText(l18n.Sprintf("Export all tunnels to &zip…"))
-	exportAction2.Triggered().Attach(tp.onExportTunnels)
-	exportAction2.SetVisible(IsAdmin)
-	contextMenu.Actions().Add(exportAction2)
-	contextMenu.Actions().Add(walk.NewSeparatorAction())
-	editAction := walk.NewAction()
-	editAction.SetText(l18n.Sprintf("Edit &selected tunnel…"))
-	editAction.SetShortcut(walk.Shortcut{walk.ModControl, walk.KeyE})
-	editAction.SetVisible(IsAdmin)
-	editAction.Triggered().Attach(tp.onEditTunnel)
-	contextMenu.Actions().Add(editAction)
-	tp.ShortcutActions().Add(editAction)
 	deleteAction2 := walk.NewAction()
 	deleteAction2.SetText(l18n.Sprintf("&Remove selected tunnel(s)"))
 	deleteAction2.SetShortcut(walk.Shortcut{0, walk.KeyDelete})
@@ -256,20 +244,9 @@ func (tp *TunnelsPage) CreateToolbar() error {
 		deleteAction2.SetEnabled(selected > 0)
 		toggleAction.SetEnabled(selected == 1)
 		selectAllAction.SetEnabled(selected < all)
-		editAction.SetEnabled(selected == 1)
 	}
 	tp.listView.SelectedIndexesChanged().Attach(setSelectionOrientedOptions)
 	setSelectionOrientedOptions()
-	setExport := func() {
-		all := len(tp.listView.model.tunnels)
-		exportAction.SetEnabled(all > 0)
-		exportAction2.SetEnabled(all > 0)
-	}
-	setExportRange := func(from, to int) { setExport() }
-	tp.listView.model.RowsInserted().Attach(setExportRange)
-	tp.listView.model.RowsRemoved().Attach(setExportRange)
-	tp.listView.model.RowsReset().Attach(setExport)
-	setExport()
 
 	return nil
 }
