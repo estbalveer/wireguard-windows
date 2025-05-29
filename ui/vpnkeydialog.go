@@ -10,10 +10,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/netip"
 	"strings"
 	"time"
 
 	"github.com/lxn/walk"
+
+	"golang.zx2c4.com/wireguard/windows/conf"
+	"golang.zx2c4.com/wireguard/windows/manager"
 )
 
 type VPNKeyDialog struct {
@@ -186,6 +190,87 @@ func newVPNKeyDialog(owner walk.Form) (*VPNKeyDialog, error) {
 
 			if !apiResp.Success {
 				walk.MsgBox(dlg, "Error", apiResp.Message, walk.MsgBoxIconError)
+				dlg.progressBar.SetVisible(false)
+				dlg.connectBtn.SetEnabled(true)
+				dlg.cancelBtn.SetEnabled(true)
+				return
+			}
+
+			// Create WireGuard configuration
+			privateKey, err := conf.NewPrivateKeyFromString(apiResp.Data.Server.PrivateKey)
+			if err != nil {
+				walk.MsgBox(dlg, "Error", "Invalid private key: "+err.Error(), walk.MsgBoxIconError)
+				dlg.progressBar.SetVisible(false)
+				dlg.connectBtn.SetEnabled(true)
+				dlg.cancelBtn.SetEnabled(true)
+				return
+			}
+
+			publicKey, err := conf.NewPrivateKeyFromString(apiResp.Data.Server.PublicKey)
+			if err != nil {
+				walk.MsgBox(dlg, "Error", "Invalid public key: "+err.Error(), walk.MsgBoxIconError)
+				dlg.progressBar.SetVisible(false)
+				dlg.connectBtn.SetEnabled(true)
+				dlg.cancelBtn.SetEnabled(true)
+				return
+			}
+
+			presharedKey, err := conf.NewPrivateKeyFromString(apiResp.Data.Server.PresharedKey)
+			if err != nil {
+				walk.MsgBox(dlg, "Error", "Invalid preshared key: "+err.Error(), walk.MsgBoxIconError)
+				dlg.progressBar.SetVisible(false)
+				dlg.connectBtn.SetEnabled(true)
+				dlg.cancelBtn.SetEnabled(true)
+				return
+			}
+
+			// Parse endpoint
+			endpointParts := strings.Split(apiResp.Data.Server.Endpoint, ":")
+			if len(endpointParts) != 2 {
+				walk.MsgBox(dlg, "Error", "Invalid endpoint format", walk.MsgBoxIconError)
+				dlg.progressBar.SetVisible(false)
+				dlg.connectBtn.SetEnabled(true)
+				dlg.cancelBtn.SetEnabled(true)
+				return
+			}
+
+			config := &conf.Config{
+				Name: key,
+				Interface: conf.Interface{
+					PrivateKey: *privateKey,
+					Addresses: []netip.Prefix{
+						netip.MustParsePrefix(apiResp.Data.Server.Address),
+					},
+					DNS: []netip.Addr{
+						netip.MustParseAddr(strings.Split(apiResp.Data.Server.DNS, ", ")[0]),
+						netip.MustParseAddr(strings.Split(apiResp.Data.Server.DNS, ", ")[1]),
+					},
+				},
+				Peers: []conf.Peer{
+					{
+						PublicKey:           *publicKey,
+						PresharedKey:        *presharedKey,
+						AllowedIPs:          []netip.Prefix{netip.MustParsePrefix("0.0.0.0/0")},
+						Endpoint:            conf.Endpoint{Host: endpointParts[0], Port: 51820},
+						PersistentKeepalive: 25,
+					},
+				},
+			}
+
+			// Create and start the tunnel
+			tunnel, err := manager.IPCClientNewTunnel(config)
+			if err != nil {
+				walk.MsgBox(dlg, "Error", "Failed to create tunnel: "+err.Error(), walk.MsgBoxIconError)
+				dlg.progressBar.SetVisible(false)
+				dlg.connectBtn.SetEnabled(true)
+				dlg.cancelBtn.SetEnabled(true)
+				return
+			}
+
+			// Start the tunnel
+			err = tunnel.Start()
+			if err != nil {
+				walk.MsgBox(dlg, "Error", "Failed to start tunnel: "+err.Error(), walk.MsgBoxIconError)
 				dlg.progressBar.SetVisible(false)
 				dlg.connectBtn.SetEnabled(true)
 				dlg.cancelBtn.SetEnabled(true)
