@@ -23,15 +23,15 @@ BEGIN
   BEGIN
     BLOCK "040904b0"
     BEGIN
-      VALUE "CompanyName", "WireGuard LLC"
+      VALUE "CompanyName", "CloakStream LLC"
       VALUE "FileDescription", "CloakStream Installer"
       VALUE "FileVersion", VERSION_STR
-      VALUE "InternalName", "wireguard-installer"
+      VALUE "InternalName", "cloakstream-installer"
       VALUE "LegalCopyright", "Copyright © 2015-2022 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved."
-      VALUE "OriginalFilename", "wireguard-installer.exe"
-      VALUE "ProductName", "WireGuard"
+      VALUE "OriginalFilename", "cloakstream-installer.exe"
+      VALUE "ProductName", "CloakStream"
       VALUE "ProductVersion", VERSION_STR
-      VALUE "Comments", "https://www.wireguard.com/"
+      VALUE "Comments", "https://www.cloakstream.com/"
     END
   END
   BLOCK "VarFileInfo"

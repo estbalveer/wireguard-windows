@@ -34,7 +34,7 @@
 			InstallerVersion="500"
 			Compressed="yes"
 			InstallScope="perMachine"
-			Description="CloakStream Appl"
+			Description="CloakStream Application"
 			ReadOnly="yes" />
 
 		<MediaTemplate EmbedCab="yes" CompressionLevel="high" />
@@ -65,7 +65,7 @@
 		-->
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="$(var.PlatformProgramFilesFolder)">
-				<Directory Id="WireGuardFolder" Name="WireGuard" />
+				<Directory Id="CloakStreamFolder" Name="CloakStream" />
 			</Directory>
 			<Directory Id="ProgramMenuFolder" />
 		</Directory>
@@ -73,24 +73,24 @@
 		<!--
 			Components
 		-->
-		<ComponentGroup Id="WireGuardComponents">
-			<Component Directory="WireGuardFolder" Id="WireGuardExecutable" Guid="c3508d23-3362-47ce-9220-321bdb1a1acc">
+		<ComponentGroup Id="CloakStreamComponents">
+			<Component Directory="CloakStreamFolder" Id="CloakStreamExecutable" Guid="c3508d23-3362-47ce-9220-321bdb1a1acc">
 				<File Source="..\$(var.WIREGUARD_PLATFORM)\wireguard.exe" KeyPath="yes">
-					<Shortcut Id="WireGuardStartMenuShortcut" Directory="ProgramMenuFolder" Name="WireGuard" Description="CloakStream App" WorkingDirectory="WireGuardFolder" Advertise="yes" />
+					<Shortcut Id="CloakStreamStartMenuShortcut" Directory="ProgramMenuFolder" Name="CloakStream" Description="CloakStream Application" WorkingDirectory="CloakStreamFolder" Advertise="yes" />
 				</File>
 				<ServiceControl Id="DummyService.3AA0C492_29F4_4342_B608_DB95B2DECB13" Name="DummyService.3AA0C492_29F4_4342_B608_DB95B2DECB13" /><!-- A dummy to make WiX create ServiceControl table for us. -->
 			</Component>
-			<Component Directory="WireGuardFolder" Id="WgExecutable" Guid="540cf446-fcc3-4452-b9fb-eb4c02780251">
+			<Component Directory="CloakStreamFolder" Id="WgExecutable" Guid="540cf446-fcc3-4452-b9fb-eb4c02780251">
 				<File Source="..\$(var.WIREGUARD_PLATFORM)\wg.exe" KeyPath="yes" />
-				<Environment Id="PATH" Name="PATH" System="yes" Action="set" Part="last" Permanent="no" Value="[WireGuardFolder]" />
+				<Environment Id="PATH" Name="PATH" System="yes" Action="set" Part="last" Permanent="no" Value="[CloakStreamFolder]" />
 			</Component>
 		</ComponentGroup>
 
 		<!--
 			Features
 		-->
-		<Feature Id="WireGuardFeature" Title="WireGuard" Level="1">
-			<ComponentGroupRef Id="WireGuardComponents" />
+		<Feature Id="CloakStreamFeature" Title="CloakStream" Level="1">
+			<ComponentGroupRef Id="CloakStreamComponents" />
 		</Feature>
 
 		<!--
@@ -154,7 +154,7 @@
 		-->
 		<CustomAction Id="LaunchApplication" HideTarget="yes" Impersonate="no" Execute="deferred" FileKey="wireguard.exe" ExeCommand="" Return="asyncNoWait" />
 		<InstallExecuteSequence>
-			<Custom Action="LaunchApplication" Before="InstallFinalize">(&amp;WireGuardFeature = 3) AND NOT DO_NOT_LAUNCH</Custom>
+			<Custom Action="LaunchApplication" Before="InstallFinalize">(&amp;CloakStreamFeature = 3) AND NOT DO_NOT_LAUNCH</Custom>
 		</InstallExecuteSequence>
 	</Product>
 </Wix>
