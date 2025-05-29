@@ -52,7 +52,7 @@ func newVPNKeyDialog(owner walk.Form) (*VPNKeyDialog, error) {
 	if err != nil {
 		return nil, err
 	}
-	subtitleLabel.SetText("Enter your VPN server key to establish a secure and private connection.")
+	subtitleLabel.SetText("Enter your VPN server key to establish a secure\n and private connection.")
 	subtitleLabel.SetTextColor(walk.RGB(100, 100, 100))
 
 	// VPN Key Input
