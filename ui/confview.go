@@ -439,7 +439,8 @@ func NewConfView(parent walk.Container) (*ConfView, error) {
 	}
 	disposables.Add(cv)
 	vlayout := walk.NewVBoxLayout()
-	vlayout.SetMargins(walk.Margins{5, 0, 5, 0})
+	vlayout.SetMargins(walk.Margins{2, 2, 2, 2})
+	vlayout.SetSpacing(2)
 	cv.SetLayout(vlayout)
 	if cv.name, err = newPaddedGroupGrid(cv); err != nil {
 		return nil, err

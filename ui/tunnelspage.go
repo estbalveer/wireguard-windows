@@ -65,7 +65,8 @@ func NewTunnelsPage() (*TunnelsPage, error) {
 		return nil, err
 	}
 	vlayout = walk.NewVBoxLayout()
-	vlayout.SetMargins(walk.Margins{})
+	vlayout.SetMargins(walk.Margins{5, 5, 5, 5})
+	vlayout.SetSpacing(5)
 	tp.currentTunnelContainer.SetLayout(vlayout)
 
 	if tp.fillerContainer, err = walk.NewComposite(tp); err != nil {
@@ -97,6 +98,15 @@ func NewTunnelsPage() (*TunnelsPage, error) {
 	controlsContainer.SetLayout(hlayout)
 
 	walk.NewHSpacer(controlsContainer)
+
+	aboutBtn, err := walk.NewPushButton(controlsContainer)
+	if err != nil {
+		return nil, err
+	}
+	aboutBtn.SetText(l18n.Sprintf("&About"))
+	aboutBtn.Clicked().Attach(func() {
+		onAbout(tp.Form())
+	})
 
 	resetDataBtn, err := walk.NewPushButton(controlsContainer)
 	if err != nil {

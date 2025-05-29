@@ -263,18 +263,18 @@ func (tray *Tray) onTunnelChange(tunnel *manager.Tunnel, state, globalState mana
 				case manager.TunnelStarted:
 					if !wasChecked {
 						icon, _ := iconWithOverlayForState(state, 128)
-						tray.ShowCustom(l18n.Sprintf("WireGuard Activated"), l18n.Sprintf("The %s tunnel has been activated.", tunnel.Name), icon)
+						tray.ShowCustom(l18n.Sprintf("CloakStream VPN Activated"), l18n.Sprintf("The %s has been activated.", tunnel.Name), icon)
 					}
 
 				case manager.TunnelStopped:
 					if wasChecked {
 						icon, _ := loadSystemIcon("imageres", -31, 128) // TODO: this icon isn't very good...
-						tray.ShowCustom(l18n.Sprintf("WireGuard Deactivated"), l18n.Sprintf("The %s tunnel has been deactivated.", tunnel.Name), icon)
+						tray.ShowCustom(l18n.Sprintf("CloakStream VPN Deactivated"), l18n.Sprintf("The %s has been deactivated.", tunnel.Name), icon)
 					}
 				}
 			}
 		} else if !tray.mtw.Visible() {
-			tray.ShowError(l18n.Sprintf("WireGuard Tunnel Error"), err.Error())
+			tray.ShowError(l18n.Sprintf("CloakStream VPN Error"), err.Error())
 		}
 		tray.setTunnelState(tunnel, state)
 	})
