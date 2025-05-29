@@ -117,7 +117,7 @@ func NewTunnelsPage() (*TunnelsPage, error) {
 		if walk.DlgCmdNo == walk.MsgBox(
 			tp.Form(),
 			l18n.Sprintf("Reset Data"),
-			l18n.Sprintf("Are you sure you want to delete all tunnel configurations? This action cannot be undone."),
+			l18n.Sprintf("Are you sure you want to reset app data? This action cannot be undone."),
 			walk.MsgBoxYesNo|walk.MsgBoxIconWarning) {
 			return
 		}
