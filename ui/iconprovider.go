@@ -88,21 +88,18 @@ func iconForState(state manager.TunnelState, size int) (icon *walk.Icon, err err
 func textForState(state manager.TunnelState, withEllipsis bool) (text string) {
 	switch state {
 	case manager.TunnelStarted:
-		text = l18n.Sprintf("Active")
-	case manager.TunnelStarting:
-		text = l18n.Sprintf("Activating")
+		text = l18n.Sprintf("Connected")
 	case manager.TunnelStopped:
-		text = l18n.Sprintf("Inactive")
+		text = l18n.Sprintf("Disconnected")
+	case manager.TunnelStarting:
+		text = l18n.Sprintf("Connecting...")
 	case manager.TunnelStopping:
-		text = l18n.Sprintf("Deactivating")
-	case manager.TunnelUnknown:
-		text = l18n.Sprintf("Unknown state")
+		text = l18n.Sprintf("Disconnecting...")
+	default:
+		text = l18n.Sprintf("Unknown")
 	}
-	if withEllipsis {
-		switch state {
-		case manager.TunnelStarting, manager.TunnelStopping:
-			text += "…"
-		}
+	if withEllipsis && (state == manager.TunnelStarting || state == manager.TunnelStopping) {
+		text += "..."
 	}
 	return
 }

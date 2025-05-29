@@ -45,13 +45,6 @@ type toggleActiveLine struct {
 
 type interfaceView struct {
 	status       *labelStatusLine
-	publicKey    *labelTextLine
-	listenPort   *labelTextLine
-	mtu          *labelTextLine
-	addresses    *labelTextLine
-	dns          *labelTextLine
-	scripts      *labelTextLine
-	table        *labelTextLine
 	toggleActive *toggleActiveLine
 	lines        []widgetsLine
 }
@@ -301,25 +294,12 @@ func newInterfaceView(parent walk.Container) (*interfaceView, error) {
 	}
 	disposables.Add(iv.status)
 
-	items := []labelTextLineItem{
-		{l18n.Sprintf("Public key:"), &iv.publicKey},
-		{l18n.Sprintf("Listen port:"), &iv.listenPort},
-		{l18n.Sprintf("MTU:"), &iv.mtu},
-		{l18n.Sprintf("Addresses:"), &iv.addresses},
-		{l18n.Sprintf("DNS servers:"), &iv.dns},
-		{l18n.Sprintf("Scripts:"), &iv.scripts},
-		{l18n.Sprintf("Table:"), &iv.table},
-	}
-	if iv.lines, err = createLabelTextLines(items, parent, &disposables); err != nil {
-		return nil, err
-	}
-
 	if iv.toggleActive, err = newToggleActiveLine(parent); err != nil {
 		return nil, err
 	}
 	disposables.Add(iv.toggleActive)
 
-	iv.lines = append([]widgetsLine{iv.status}, append(iv.lines, iv.toggleActive)...)
+	iv.lines = []widgetsLine{iv.status, iv.toggleActive}
 
 	layoutInGrid(iv, parent.Layout().(*walk.GridLayout))
 
@@ -368,73 +348,7 @@ func (iv *interfaceView) widgetsLines() []widgetsLine {
 }
 
 func (iv *interfaceView) apply(c *conf.Interface) {
-	if IsAdmin {
-		iv.publicKey.show(c.PrivateKey.Public().String())
-	} else {
-		iv.publicKey.hide()
-	}
-
-	if c.ListenPort > 0 {
-		iv.listenPort.show(strconv.Itoa(int(c.ListenPort)))
-	} else {
-		iv.listenPort.hide()
-	}
-
-	if c.MTU > 0 {
-		iv.mtu.show(strconv.Itoa(int(c.MTU)))
-	} else {
-		iv.mtu.hide()
-	}
-
-	if len(c.Addresses) > 0 {
-		addrStrings := make([]string, len(c.Addresses))
-		for i, address := range c.Addresses {
-			addrStrings[i] = address.String()
-		}
-		iv.addresses.show(strings.Join(addrStrings[:], l18n.EnumerationSeparator()))
-	} else {
-		iv.addresses.hide()
-	}
-
-	if len(c.DNS)+len(c.DNSSearch) > 0 {
-		addrStrings := make([]string, 0, len(c.DNS)+len(c.DNSSearch))
-		for _, address := range c.DNS {
-			addrStrings = append(addrStrings, address.String())
-		}
-		addrStrings = append(addrStrings, c.DNSSearch...)
-		iv.dns.show(strings.Join(addrStrings[:], l18n.EnumerationSeparator()))
-	} else {
-		iv.dns.hide()
-	}
-
-	var scriptsInUse []string
-	if len(c.PreUp) > 0 {
-		scriptsInUse = append(scriptsInUse, l18n.Sprintf("pre-up"))
-	}
-	if len(c.PostUp) > 0 {
-		scriptsInUse = append(scriptsInUse, l18n.Sprintf("post-up"))
-	}
-	if len(c.PreDown) > 0 {
-		scriptsInUse = append(scriptsInUse, l18n.Sprintf("pre-down"))
-	}
-	if len(c.PostDown) > 0 {
-		scriptsInUse = append(scriptsInUse, l18n.Sprintf("post-down"))
-	}
-	if len(scriptsInUse) > 0 {
-		if conf.AdminBool("DangerousScriptExecution") {
-			iv.scripts.show(strings.Join(scriptsInUse, l18n.EnumerationSeparator()))
-		} else {
-			iv.scripts.show(l18n.Sprintf("disabled, per policy"))
-		}
-	} else {
-		iv.scripts.hide()
-	}
-
-	if c.TableOff {
-		iv.table.show(l18n.Sprintf("off"))
-	} else {
-		iv.table.hide()
-	}
+	// No need to show any interface details
 }
 
 func (pv *peerView) widgetsLines() []widgetsLine {
@@ -654,7 +568,7 @@ func (cv *ConfView) setTunnel(tunnel *manager.Tunnel, config *conf.Config, state
 		return
 	}
 
-	title := l18n.Sprintf("Interface: %s", config.Name)
+	title := l18n.Sprintf("Tunnel: %s", config.Name)
 	if cv.name.Title() != title {
 		cv.SetSuspended(true)
 		defer cv.SetSuspended(false)
@@ -665,61 +579,13 @@ func (cv *ConfView) setTunnel(tunnel *manager.Tunnel, config *conf.Config, state
 	cv.interfaze.apply(&config.Interface)
 	cv.interfaze.status.update(state)
 	cv.interfaze.toggleActive.update(state)
-	inverse := make(map[*peerView]bool, len(cv.peers))
-	all := make([]*peerView, 0, len(cv.peers))
+
+	// Remove all peer views
 	for _, pv := range cv.peers {
-		inverse[pv] = true
-		all = append(all, pv)
-	}
-	someMatch := false
-	for _, peer := range config.Peers {
-		_, ok := cv.peers[peer.PublicKey]
-		if ok {
-			someMatch = true
-			break
-		}
-	}
-	for _, peer := range config.Peers {
-		if pv := cv.peers[peer.PublicKey]; (!someMatch && len(all) > 0) || pv != nil {
-			if pv == nil {
-				pv = all[0]
-				all = all[1:]
-				k, e := conf.NewPrivateKeyFromString(pv.publicKey.text.Text())
-				if e != nil {
-					continue
-				}
-				delete(cv.peers, *k)
-				cv.peers[peer.PublicKey] = pv
-			}
-			pv.apply(&peer)
-			inverse[pv] = false
-		} else {
-			group, err := newPaddedGroupGrid(cv)
-			if err != nil {
-				continue
-			}
-			group.SetTitle(l18n.Sprintf("Peer"))
-			pv, err := newPeerView(group)
-			if err != nil {
-				group.Dispose()
-				continue
-			}
-			pv.apply(&peer)
-			cv.peers[peer.PublicKey] = pv
-		}
-	}
-	for pv, remove := range inverse {
-		if !remove {
-			continue
-		}
-		k, e := conf.NewPrivateKeyFromString(pv.publicKey.text.Text())
-		if e != nil {
-			continue
-		}
-		delete(cv.peers, *k)
 		groupBox := pv.publicKey.label.Parent().AsContainerBase().Parent().(*walk.GroupBox)
 		groupBox.SetVisible(false)
 		groupBox.Parent().Children().Remove(groupBox)
 		groupBox.Dispose()
 	}
+	cv.peers = make(map[conf.Key]*peerView)
 }
